@@ -92,9 +92,20 @@ async def summarize(start_date, end_date, category=None):  # Changed: added asyn
 
             query += " GROUP BY category ORDER BY total_amount DESC"
 
-            cur = await c.execute(query, params)  # Changed: added await
+            cur = await c.execute(query, params)
+
             cols = [d[0] for d in cur.description]
-            return [dict(zip(cols, r)) for r in await cur.fetchall()]  # Changed: added await
+            rows = await cur.fetchall()
+
+            if not rows:
+                return {
+                    "message": "No expenses found for the specified date range.",
+                    "data": []
+                }
+
+            return {
+                "data": [dict(zip(cols, r)) for r in rows]
+            }
     except Exception as e:
         return {"status": "error", "message": f"Error summarizing expenses: {str(e)}"}
 
